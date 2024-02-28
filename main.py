@@ -9,12 +9,31 @@ from models import Alumnos
 app = Flask(__name__)
 app.secret_key = 'clave_secreta'
 
+csrf = CSRFProtect()
 
-@app.route("/index")
+
+@app.route("/index", methods=["GET","POST"])
 def index():
-    escuela = "UTL"
-    alumnos = ["MArio","Luis","Pedro","Dario"]
-    return render_template("index.html",escuela =  escuela, alumnos = alumnos)
+    alum_form = forms.UserForm2(request.form)
+    if request.method == 'POST':#and alum_form.validate()
+         alum = Alumnos(
+             nombre = alum_form.nombre.data,
+             apaterno = alum_form.apaterno.data,
+             email = alum_form.email.data
+         )
+         db.session.add(alum)
+         db.session.comit()
+         
+    
+    return render_template("index.html")
+
+
+@app.route("/ABC_Completo", methods=["GET","POST"])
+def ABC_Completo():
+    alumno = Alumnos.query.all()
+    
+    return render_template("ABC_Completo.html", alumno = alumno)
+
 
 @app.route("/alumnos", methods=["GET","POST"])
 def alumno():
@@ -24,7 +43,7 @@ def alumno():
     apa = ''
     ama = ''
     correo = ''
-    alum_form = form.UserForm(request.form)
+    alum_form = forms.UserForm(request.form)
     if request.method == 'POST' and alum_form.validate():
         print(f'hola: {g.nombre}')
         nom = alum_form.nombre.data
@@ -59,10 +78,11 @@ def after_request(response):
     
 # ------------------------------------------------------------
 if __name__ =="__main__":
-    csrf,init_app(app)  #se utiliza debug = True para ctivar "actualizaciones en caliente" similar liveServer
+    csrf, init_app(app)  #se utiliza debug = True para ctivar "actualizaciones en caliente" similar liveServer
     db.init_app(app)
     with app.app_context():
         db.create_all()
     app.run()
 #   para tumbar el servidor es con el comando ctrl + c
 #   para activarlo se ejecuta el archivo, escribir en la terminal "py nombre.py"
+#   nombre, correo, Telefono, Direccion, Sueldo
