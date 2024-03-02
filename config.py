@@ -1,6 +1,6 @@
 import os
 import urllib
-from sqlalchemy import create_engeni
+from sqlalchemy import create_engine
 
 class Config(object):
     SECRET_KEY = 'Clave_Nueva'

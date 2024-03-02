@@ -2,12 +2,14 @@ from flask import Flask, render_template, request, flash, Response, redirect
 from flask_wtf.csrf import CSRFProtect
 import forms
 from flask import g
-
+from config import DevelopmentConfig
 from models import db
 from models import Alumnos
 
+
 app = Flask(__name__)
 app.secret_key = 'clave_secreta'
+app.config.from_object(DevelopmentConfig)
 
 csrf = CSRFProtect()
 
@@ -27,6 +29,48 @@ def index():
     
     return render_template("index.html")
 
+@app.route("/eliminar", methods=["GET","POST"])
+def eliminar():
+    alum_form = forms.UserForm2(request.form)
+    if request.method == 'GET':
+        id = request.args.get('id')
+        alum1 = db.session.query(Alumnos).filter(Alumnos.id == id).first()
+        alum_form.id.data = request.args.get('id')
+        alum_form.nombre.data = alum1.nombre
+        alum_form.apaterno.data = alum1.apePaterno
+        alum_form.email.data = alum1.email
+        
+    if request.method == 'POST':
+        id = alum_form.id.data
+        alum = Alumnos.query.get(id)
+        db.session.delete(alum)
+        db.session.commit()
+        return redirect('ABC_Completo')
+    
+    return render_template("eliminar.html", form = alum_form)
+
+
+@app.route("/modificar", methods=["GET","POST"])
+def eliminar():
+    alum_form = forms.UserForm2(request.form)
+    if request.method == 'GET':
+        id = request.args.get('id')
+        alum1 = db.session.query(Alumnos).filter(Alumnos.id == id).first()
+        alum_form.id.data = request.args.get('id')
+        alum_form.nombre.data = alum1.nombre
+        alum_form.apaterno.data = alum1.apePaterno
+        alum_form.email.data = alum1.email
+        
+    if request.method == 'POST':
+        id = alum_form.id.data
+        alum1 = db.session.query(Alumnos).filter(Alumnos.id == id).first()
+        alum1.nombre = alum_form.nombre.data
+        alum1.apePaterno = alum_form.apaterno.data
+        alum1.email = alum_form.nombre.data
+        db.session.commit()
+        return redirect('ABC_Completo')
+    
+    return render_template("modificar.html", form = alum_form)
 
 @app.route("/ABC_Completo", methods=["GET","POST"])
 def ABC_Completo():
@@ -78,7 +122,7 @@ def after_request(response):
     
 # ------------------------------------------------------------
 if __name__ =="__main__":
-    csrf, init_app(app)  #se utiliza debug = True para ctivar "actualizaciones en caliente" similar liveServer
+    csrf.init_app(app)  #se utiliza debug = True para ctivar "actualizaciones en caliente" similar liveServer
     db.init_app(app)
     with app.app_context():
         db.create_all()
